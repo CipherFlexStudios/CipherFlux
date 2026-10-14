@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CipherFlux - Private Journal & Mind-Map Workspace</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-dark: #121216;
+            --sidebar-bg: #1a1a20;
+            --accent-color: #7f5af0;
+            --text-main: #fffffe;
+            --text-muted: #94a1b2;
+            --card-bg: #1e1e24;
+            --danger: #ff5555;
+            --custom-bg: transparent;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            background-image: var(--custom-bg);
+            background-size: cover;
+            background-position: center;
+            color: var(--text-main);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        #journal-lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 18, 22, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .journal-lock-card {
+            background: var(--sidebar-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 380px;
+            border: 1px solid rgba(127, 90, 240, 0.3);
+        }
+
+        .journal-lock-card h2 {
+            margin-bottom: 10px;
+        }
+
+        .journal-lock-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .journal-lock-card input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: var(--bg-dark);
+            border: 1px solid var(--text-muted);
+            border-radius: 6px;
+            color: var(--text-main);
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .journal-lock-card button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .journal-lock-card button:hover {
+            background: #6246ea;
+        }
+
+        #journal-app-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        .journal-header {
+            padding: 15px 30px;
+            background: rgba(26, 26, 32, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .journal-header h1 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .journal-toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .journal-toolbar button, .journal-toolbar select {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .journal-toolbar button:hover {
+            background: var(--accent-color);
+        }
+
+        .journal-main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .journal-sidebar-left {
+            width: 280px;
+            background: rgba(22, 22, 26, 0.85);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        .journal-sidebar-left h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .mindmap-node-input {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-dark);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .mindmap-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mindmap-item {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.03);
+            cursor: pointer;
+        }
+
+        .mindmap-item:hover {
+            border-color: var(--accent-color);
+        }
+
+        .journal-body {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            outline: none;
+            font-size: 18px;
+            line-height: 1.8;
+            background: rgba(18, 18, 22, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .journal-sidebar-right {
+            width: 320px;
+            background: rgba(22, 22, 26, 0.85);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .calc-box, .customizer-box {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .calc-box input, .calc-box button {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-dark);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .calc-box button {
+            background: var(--accent-color);
+            cursor: pointer;
+            font-weight: 600;
+            border: none;
+        }
+
+        .calc-box button:hover {
+            background: #6246ea;
+        }
+
+        .comment-badge {
+            background: rgba(127, 90, 240, 0.2);
+            border-left: 3px solid var(--accent-color);
+            padding: 8px 12px;
+            font-size: 14px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        pre[class*="language-"] {
+            background: #121216 !important;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin: 10px 0;
+        }
+
+        .journal-footer {
+            padding: 10px 30px;
+            background: rgba(26, 26, 32, 0.85);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="starfield"></div>
+
+    <div id="journal-lock-screen">
+        <div class="journal-lock-card">
+            <h2>📖 Private Journal Vault</h2>
+            <p>Enter your <b>secondary journal password</b></p>
+            <input type="password" id="journal-password-input" placeholder="Journal Password..." onkeydown="if(event.key === 'Enter') unlockJournal()">
+            <button onclick="unlockJournal()">Unlock Journal</button>
+        </div>
+    </div>
+
+    <div id="app-screen" style="display:none; width:100%; height:100%;"></div>
+
+    <div id="journal-app-screen">
+        <div class="journal-header">
+            <h1>📖 Private Journal & Mind-Map Workspace</h1>
+            <div class="journal-toolbar">
+                <select onchange="formatJournalCommand('fontName', this.value); this.selectedIndex=0;">
+                    <option value="" disabled selected>Font</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Monospace</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                </select>
+                <select onchange="formatJournalCommand('fontSize', this.value); this.selectedIndex=0;">
+                    <option value="" disabled selected>Size</option>
+                    <option value="2">Small</option>
+                    <option value="3">Normal</option>
+                    <option value="5">Large</option>
+                    <option value="7">Huge</option>
+                </select>
+                <input type="color" onchange="formatJournalCommand('foreColor', this.value)" title="Text Color" style="background:var(--card-bg); border:1px solid rgba(255,255,255,0.1); width:28px; height:26px; padding:0; cursor:pointer; border-radius:4px;">
+                <button onclick="formatJournalText('bold')"><b>B</b></button>
+                <button onclick="formatJournalText('italic')"><i>I</i></button>
+                <button onclick="formatJournalText('underline')"><u>U</u></button>
+                <button onclick="insertJournalCodeBlock('javascript')">&lt;/&gt; JS</button>
+                <button onclick="addJournalComment()">💬 Comment</button>
+                <button onclick="exportJournalFile()">Export 💾</button>
+                <button onclick="window.close()" style="background:var(--danger);">Close ✕</button>
+            </div>
+        </div>
+
+        <div class="journal-main-layout">
+            <div class="journal-sidebar-left">
+                <h3>🧠 Mind-Map Notes</h3>
+                <input type="text" id="mindmap-input" class="mindmap-node-input" placeholder="+ Add Mind-Map Branch..." onkeydown="if(event.key === 'Enter') addMindMapNode()">
+                <div class="mindmap-list" id="mindmap-container"></div>
+            </div>
+
+            <div id="journal-content" class="journal-body" contenteditable="true" oninput="autoSaveJournal()">
+                Write freely, draft code blocks, or brainstorm ideas here...
+            </div>
+
+            <div class="journal-sidebar-right">
+                <div class="calc-box">
+                    <h3>📐 Math Solver</h3>
+                    <input type="text" id="math-expr" placeholder="e.g. 45 * 12 + sqrt(144)">
+                    <button onclick="solveMath()">Calculate</button>
+                    <div id="math-result" style="font-size:13px; color:var(--text-muted); min-height:20px;"></div>
+                </div>
+
+                <div class="customizer-box">
+                    <h3>🎨 Background Studio</h3>
+                    <p style="font-size:12px; color:var(--text-muted);">Upload custom background image:</p>
+                    <input type="file" accept="image/*" onchange="loadCustomBackground(event)" style="font-size:12px;">
+                    <button onclick="resetBackground()" style="background:var(--card-bg); border:1px solid rgba(255,255,255,0.1); padding:6px; border-radius:4px; cursor:pointer; color:var(--text-main); font-size:12px;">Reset Default</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="journal-footer">
+            <span id="journal-status">Journal encrypted & secured ✓</span>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        const JOURNAL_STORAGE_KEY = "cipherflux_journal_data";
+        const MINDMAP_KEY = "cipherflux_mindmap_data";
+        const BG_KEY = "cipherflux_custom_bg";
+        let journalKey = null;
+        let mindMapNodes = [];
+
+        function initStarfield() {
+            const starfield = document.getElementById('starfield');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                starfield.appendChild(star);
+            }
+        }
+        initStarfield();
+
+        const savedBg = localStorage.getItem(BG_KEY);
+        if (savedBg) {
+            document.body.style.setProperty('--custom-bg', `url(${savedBg})`);
+        }
+
+        function loadCustomBackground(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                localStorage.setItem(BG_KEY, dataUrl);
+                document.body.style.setProperty('--custom-bg', `url(${dataUrl})`);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetBackground() {
+            localStorage.removeItem(BG_KEY);
+            document.body.style.setProperty('--custom-bg', 'transparent');
+        }
+
+        async function getKeyFromPassword(password) {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw",
+                enc.encode(password),
+                { name: "PBKDF2" },
+                false,
+                ["deriveKey"]
+            );
+            return window.crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: enc.encode("independent-journal-salt"),
+                    iterations: 100000,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        async function unlockJournal() {
+            const pass = document.getElementById('journal-password-input').value;
+            if (!pass || pass.trim() === "") {
+                alert("Please enter your journal password.");
+                return;
+            }
+
+            try {
+                journalKey = await getKeyFromPassword(pass);
+                document.getElementById('journal-lock-screen').style.display = 'none';
+                document.getElementById('journal-app-screen').style.display = 'flex';
+                await loadJournalContent();
+                loadMindMap();
+            } catch (err) {
+                alert("Incorrect secondary journal password.");
+            }
+        }
+
+        async function decryptData(base64Payload, passwordKey) {
+            try {
+                const cipherPayload = atob(base64Payload);
+                const parts = cipherPayload.split(':');
+                if (parts.length !== 2) throw new Error("Invalid format");
+                const ivHex = parts[0];
+                const encryptedHex = parts[1];
+                const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const encryptedContent = new Uint8Array(encryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const decryptedContent = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    passwordKey,
+                    encryptedContent
+                );
+                return new TextDecoder().decode(decryptedContent);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function encryptData(text, passwordKey) {
+            const enc = new TextEncoder();
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encryptedContent = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                passwordKey,
+                enc.encode(text)
+            );
+            const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join('');
+            const encryptedHex = Array.from(new Uint8Array(encryptedContent)).map(b => b.toString(16).padStart(2, '0')).join('');
+            return btoa(ivHex + ':' + encryptedHex);
+        }
+
+        async function loadJournalContent() {
+            try {
+                const raw = localStorage.getItem(JOURNAL_STORAGE_KEY);
+                if (raw) {
+                    const decrypted = await decryptData(raw, journalKey);
+                    if (decrypted) {
+                        document.getElementById('journal-content').innerHTML = decrypted;
+                        if (window.Prism) Prism.highlightAll();
+                        return;
+                    }
+                }
+                document.getElementById('journal-content').innerHTML = "Welcome to your encrypted journal! Start typing here...";
+            } catch (e) {
+                document.getElementById('journal-content').innerHTML = "Welcome to your encrypted journal! Start typing here...";
+            }
+        }
+
+        async function autoSaveJournal() {
+            if (!journalKey) return;
+            const content = document.getElementById('journal-content').innerHTML;
+            try {
+                const encrypted = await encryptData(content, journalKey);
+                localStorage.setItem(JOURNAL_STORAGE_KEY, encrypted);
+                const status = document.getElementById('journal-status');
+                status.innerText = "Journal independently encrypted & saved ✓";
+                setTimeout(() => {
+                    status.innerText = "Journal encrypted & secured ✓";
+                }, 1500);
+            } catch (err) {
+                console.error("Save error:", err);
+            }
+        }
+
+        function formatJournalCommand(cmd, val) {
+            document.execCommand(cmd, false, val);
+            autoSaveJournal();
+        }
+
+        function formatJournalText(cmd) {
+            document.execCommand(cmd, false, null);
+            autoSaveJournal();
+        }
+
+        function insertJournalCodeBlock(lang) {
+            const codeHtml = `<pre><code class="language-${lang}">// Write your code here...\nconsole.log("Hello Journal!");</code></pre><p><br></p>`;
+            document.execCommand('insertHTML', false, codeHtml);
+            if (window.Prism) Prism.highlightAll();
+            autoSaveJournal();
+        }
+
+        function addJournalComment() {
+            const commentText = prompt("Enter private comment or note:");
+            if (!commentText) return;
+            const commentHtml = `<div class="comment-badge">💬 ${commentText}</div><p><br></p>`;
+            document.execCommand('insertHTML', false, commentHtml);
+            autoSaveJournal();
+        }
+
+        function exportJournalFile() {
+            const content = document.getElementById('journal-content').innerText;
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CipherFlux_Journal_${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function addMindMapNode() {
+            const input = document.getElementById('mindmap-input');
+            const val = input.value.trim();
+            if (!val) return;
+            mindMapNodes.push(val);
+            input.value = "";
+            saveMindMap();
+            renderMindMap();
+        }
+
+        function saveMindMap() {
+            localStorage.setItem(MINDMAP_KEY, JSON.stringify(mindMapNodes));
+        }
+
+        function loadMindMap() {
+            const saved = localStorage.getItem(MINDMAP_KEY);
+            if (saved) {
+                try {
+                    mindMapNodes = JSON.parse(saved);
+                } catch (e) {
+                    mindMapNodes = [];
+                }
+            }
+            renderMindMap();
+        }
+
+        function renderMindMap() {
+            const container = document.getElementById('mindmap-container');
+            container.innerHTML = '';
+            mindMapNodes.forEach((node, index) => {
+                const div = document.createElement('div');
+                div.className = 'mindmap-item';
+                div.innerText = node;
+                div.onclick = () => {
+                    const html = `<b>[Mind-Map Node: ${node}]</b><p><br></p>`;
+                    document.execCommand('insertHTML', false, html);
+                    autoSaveJournal();
+                };
+                container.appendChild(div);
+            });
+        }
+
+        function solveMath() {
+            const expr = document.getElementById('math-expr').value;
+            const resultDiv = document.getElementById('math-result');
+            try {
+                const sanitized = expr.replace(/[^0-9+\-*/().%\s]/g, '');
+                const res = Function('"use strict";return (' + sanitized + ')')();
+                resultDiv.innerText = `Result: ${res}`;
+            } catch (e) {
+                resultDiv.innerText = "Invalid expression";
+            }
+        }
+    </script>
+</body>
+</html>
