@@ -17,21 +17,21 @@ const defaultData = {
                     id: "todo",
                     title: "To Do",
                     cards: [
-                        { id: "c1", title: "Project Blueprint", preview: "Outline main document structure...", content: "Initial notes and goals for the secure web app." }
+                        { id: "c1", title: "Document Name Here", preview: "Insert Text Here...", content: "Insert Text Here." }
                     ]
                 },
                 {
                     id: "inprogress",
                     title: "In Progress",
                     cards: [
-                        { id: "c2", title: "Security Layer Test", preview: "Verify encryption logic...", content: "Testing encryption saving and file handling inside browser storage." }
+                        { id: "c2", title: "Document Name Here", preview: "Insert Text Here...", content: "Insert Text Here" }
                     ]
                 },
                 {
                     id: "done",
                     title: "Done",
                     cards: [
-                        { id: "c3", title: "App Initialization", preview: "Browser shell set up successfully.", content: "HTML and JavaScript workspace configured and running smoothly." }
+                        { id: "c3", title: "Document Name Here", preview: "Insert Text Here.", content: "Insert Text Here." }
                     ]
                 }
             ]
