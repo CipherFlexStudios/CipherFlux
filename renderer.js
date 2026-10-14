@@ -453,10 +453,7 @@ window.exportCurrentDocument = function() {
 };
 
 window.openJournalWindow = function() {
-    const journalModal = document.getElementById('journal-modal');
-    if (journalModal) {
-        journalModal.style.display = 'flex';
-    }
+    window.open('journal.html', '_blank');
 };
 
 window.switchView = function(viewName) {
