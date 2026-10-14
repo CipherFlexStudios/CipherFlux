@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CipherFlux - Secure Local Workspace</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-dark: #1e1e24;
+            --sidebar-bg: #16161a;
+            --accent-color: #7f5af0;
+            --accent-hover: #6246ea;
+            --text-main: #fffffe;
+            --text-muted: #94a1b2;
+            --card-bg: #242629;
+            --border-color: #2cb67d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+        }
+
+        .login-card {
+            background: var(--sidebar-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 380px;
+            border: 1px solid rgba(127, 90, 240, 0.2);
+        }
+
+        .login-card h2 {
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: var(--bg-dark);
+            border: 1px solid var(--text-muted);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
+            color: var(--text-main);
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 600;
+        }
+
+        .login-card button:hover {
+            background: var(--accent-hover);
+        }
+
+        #app-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: row;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            padding: 20px;
+            justify-content: space-between;
+        }
+
+        .sidebar-top h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-dark);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 13px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-color);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 10px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background: var(--accent-color);
+            color: var(--text-main);
+        }
+
+        .sidebar-bottom {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .journal-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 6px;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .journal-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.1);
+        }
+
+        .journal-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+            overflow: hidden;
+        }
+
+        .view-panel {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .view-panel.active {
+            display: flex;
+        }
+
+        .view-header {
+            padding: 20px 30px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-header h1 {
+            font-size: 22px;
+            color: var(--text-main);
+        }
+
+        .board-container {
+            flex: 1;
+            padding: 25px;
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+        }
+
+        .column {
+            background: var(--sidebar-bg);
+            width: 320px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .column-header {
+            padding: 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .add-card-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .card-list {
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--accent-color);
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .card-preview {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 8px;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .card-btn {
+            background: none;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 2px 6px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .card-btn:hover {
+            background: var(--text-muted);
+            color: var(--bg-dark);
+        }
+
+        .card-btn.delete:hover {
+            background: #ff5555;
+            border-color: #ff5555;
+            color: white;
+        }
+
+        .documents-container {
+            flex: 1;
+            padding: 25px;
+            display: flex;
+            gap: 25px;
+            overflow: hidden;
+        }
+
+        .docs-list-pane {
+            width: 300px;
+            background: var(--sidebar-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .docs-list-header {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .docs-list-header button {
+            flex: 1;
+            padding: 8px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .docs-list-header button:hover {
+            background: var(--accent-hover);
+        }
+
+        .docs-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .doc-item {
+            padding: 12px;
+            background: var(--card-bg);
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.2s;
+        }
+
+        .doc-item:hover, .doc-item.active {
+            border-color: var(--accent-color);
+            background: rgba(127, 90, 240, 0.1);
+        }
+
+        .doc-item-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .doc-item-preview {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .docs-editor-pane {
+            flex: 1;
+            background: var(--sidebar-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            background: var(--bg-dark);
+        }
+
+        .editor-toolbar {
+            padding: 12px 25px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .editor-toolbar button, .editor-toolbar select {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .editor-toolbar button:hover {
+            background: var(--accent-color);
+        }
+
+        .editor-title-input {
+            width: 100%;
+            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-main);
+            font-size: 24px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .editor-content-editable {
+            flex: 1;
+            padding: 25px;
+            outline: none;
+            overflow-y: auto;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        pre[class*="language-"] {
+            background: #121216 !important;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin: 10px 0;
+        }
+
+        .editor-footer {
+            padding: 10px 25px;
+            background: var(--sidebar-bg);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        #journal-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 18, 22, 0.95);
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .journal-modal-header {
+            padding: 15px 30px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .journal-modal-body {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            outline: none;
+            font-size: 18px;
+            line-height: 1.8;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .journal-modal-footer {
+            padding: 10px 30px;
+            background: var(--sidebar-bg);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <h2>🔒 CipherFlux Vault</h2>
+            <input type="password" id="master-password" placeholder="Enter Master Key..." onkeydown="if(event.key === 'Enter') unlockApp()">
+            <button onclick="unlockApp()">Unlock Workspace</button>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        <div class="sidebar">
+            <div class="sidebar-top">
+                <h3>CipherFlux</h3>
+                <input type="text" id="global-search-input" class="search-box" placeholder="🔍 Global Search..." oninput="handleGlobalSearch(this.value)">
+                <ul class="sidebar-menu">
+                    <li><a href="#" id="nav-board-link" class="active" onclick="switchView('board')">My Boards</a></li>
+                    <li><a href="#" id="nav-docs-link" onclick="switchView('documents')">My Documents</a></li>
+                    <li><a href="#" id="nav-settings-link" onclick="switchView('settings')">Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-bottom">
+                <button class="journal-btn" onclick="openJournalWindow()" title="Open Private Journal">📖</button>
+                <div class="journal-label">Private Journal</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div id="board-view" class="view-panel active">
+                <div class="view-header">
+                    <h1 id="board-header-title">Project Alpha Board</h1>
+                </div>
+                <div class="board-container" id="board-columns-container">
+                </div>
+            </div>
+
+            <div id="documents-view" class="view-panel">
+                <div class="view-header">
+                    <h1>My Documents Library</h1>
+                </div>
+                <div class="documents-container">
+                    <div class="docs-list-pane">
+                        <div class="docs-list-header">
+                            <button onclick="createNewDocument()">+ New Doc</button>
+                            <button onclick="importDocumentFile()" style="background: #2cb67d;">Import 📁</button>
+                            <input type="file" id="import-file-input" style="display:none" onchange="handleFileImport(event)">
+                        </div>
+                        <div class="docs-items" id="docs-items-container">
+
+                        </div>
+                    </div>
+                    <div class="docs-editor-pane" id="doc-editor-wrapper" style="display: none;">
+                        <div class="editor-toolbar">
+                            <button onclick="formatDocText('bold')"><b>B</b></button>
+                            <button onclick="formatDocText('italic')"><i>I</i></button>
+                            <button onclick="formatDocText('underline')"><u>U</u></button>
+                            <button onclick="insertCodeBlock('javascript')">&lt;/&gt; JS</button>
+                            <button onclick="insertCodeBlock('html')">&lt;/&gt; HTML</button>
+                            <button onclick="exportCurrentDocument()" style="margin-left: auto; background: #2cb67d;">Export File 💾</button>
+                            <button onclick="deleteCurrentDocument()" style="background: #ff5555;">Delete 🗑️</button>
+                        </div>
+                        <input type="text" id="doc-active-title" class="editor-title-input" placeholder="Document Title..." oninput="autoSaveActiveDoc()">
+                        <div id="doc-active-content" class="editor-content-editable" contenteditable="true" oninput="autoSaveActiveDoc()"></div>
+                        <div class="editor-footer">
+                            <span id="doc-save-status">All changes saved locally</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          
+            <div id="settings-view" class="view-panel">
+                <div class="view-header">
+                    <h1>Workspace Settings & Security</h1>
+                </div>
+                <div style="padding: 40px; display: flex; flex-direction: column; gap: 20px; max-width: 600px;">
+                    <div style="background: var(--sidebar-bg); padding: 25px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <h3 style="margin-bottom: 10px; color: var(--text-main);">🛡️ Encrypted Vault Backup</h3>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Download an encrypted copy of your entire workspace. It can be safely stored anywhere on your PC or a USB drive.</p>
+                        <button onclick="exportVaultBackup()" style="background: var(--accent-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">Export Encrypted Backup 📦</button>
+                    </div>
+
+                    <div style="background: var(--sidebar-bg); padding: 25px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <h3 style="margin-bottom: 10px; color: var(--text-main);">⏱️ Auto-Lock Security</h3>
+                        <p style="color: var(--text-muted); font-size: 14px;">Your workspace automatically tracks inactivity and will lock itself after <b>5 minutes</b> of being away.</p>
+                    </div>
+                </div>
+            </div>
+          
+            <div id="editor-view" class="editor-container">
+                <div class="editor-toolbar">
+                            <select onchange="formatDocCommand('fontName', this.value); this.selectedIndex=0;">
+                                <option value="" disabled selected>Font</option>
+                                <option value="Arial">Arial</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Courier New">Monospace</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Verdana">Verdana</option>
+                            </select>
+                            <select onchange="formatDocCommand('fontSize', this.value); this.selectedIndex=0;">
+                                <option value="" disabled selected>Size</option>
+                                <option value="2">Small</option>
+                                <option value="3">Normal</option>
+                                <option value="5">Large</option>
+                                <option value="7">Huge</option>
+                            </select>
+                            <input type="color" onchange="formatDocCommand('foreColor', this.value)" title="Text Color" style="background:var(--card-bg); border:1px solid rgba(255,255,255,0.1); width:32px; height:30px; padding:0; cursor:pointer; border-radius:4px;">
+                            <input type="color" onchange="formatDocCommand('hiliteColor', this.value)" title="Highlight Color" style="background:var(--card-bg); border:1px solid rgba(255,255,255,0.1); width:32px; height:30px; padding:0; cursor:pointer; border-radius:4px;">
+                            <button onclick="formatDocText('bold')"><b>B</b></button>
+                            <button onclick="formatDocText('italic')"><i>I</i></button>
+                            <button onclick="formatDocText('underline')"><u>U</u></button>
+                            <button onclick="formatDocText('strikeThrough')"><s>S</s></button>
+                            <button onclick="formatDocText('removeFormat')">Clear</button>
+                            <button onclick="insertCodeBlock('javascript')">&lt;/&gt; JS</button>
+                            <button onclick="insertCodeBlock('html')">&lt;/&gt; HTML</button>
+                            <button onclick="exportCurrentDocument()" style="margin-left: auto; background: #2cb67d;">Export File 💾</button>
+                            <button onclick="deleteCurrentDocument()" style="background: #ff5555;">Delete 🗑️</button>
+                        </div>
+                <input type="text" id="active-card-title" class="editor-title-input" placeholder="Document Title..." oninput="autoSaveActiveCard()">
+                <div id="active-card-content" class="editor-content-editable" contenteditable="true" oninput="autoSaveActiveCard()"></div>
+                <div class="editor-footer">
+                    <span id="save-status">All changes saved locally</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+  
+    <div id="journal-modal">
+        <div class="journal-modal-header">
+            <h1>📖 Private Journal Workspace</h1>
+            <button onclick="document.getElementById('journal-modal').style.display='none'" style="background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); padding: 6px 14px; border-radius: 4px; cursor: pointer;">Close ✕</button>
+        </div>
+        <div id="journal-content" class="journal-modal-body" contenteditable="true">
+            Write freely, draft code blocks, or brainstorm ideas here...
+        </div>
+        <div class="journal-modal-footer">
+            <span id="journal-status">Journal secured ✓</span>
+        </div>
+    </div>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>
