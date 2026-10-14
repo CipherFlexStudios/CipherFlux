@@ -390,6 +390,10 @@ window.autoSaveActiveDoc = function() {
     }, 1500);
 };
 
+window.formatDocCommand = function(cmd, val) {
+    document.execCommand(cmd, false, val);
+    autoSaveActiveDoc();
+
 window.formatDocText = function(command) {
     document.execCommand(command, false, null);
     autoSaveActiveDoc();
