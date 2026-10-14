@@ -393,6 +393,7 @@ window.autoSaveActiveDoc = function() {
 window.formatDocCommand = function(cmd, val) {
     document.execCommand(cmd, false, val);
     autoSaveActiveDoc();
+};
 
 window.formatDocText = function(command) {
     document.execCommand(command, false, null);
